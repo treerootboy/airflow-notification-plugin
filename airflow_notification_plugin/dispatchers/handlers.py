@@ -214,23 +214,22 @@ class APNSHandler(NotificationHandler):
     def send(self, config: Dict[str, Any], message: str, **kwargs) -> bool:
         """Send push notification via APNS.
         
-        This is a placeholder implementation that always returns False.
-        Implement proper APNS integration when needed.
+        This is a placeholder that returns False. Implement when APNS support is needed.
         """
-        logger.warning("APNS handler not fully implemented yet")
-        raise NotImplementedError(
-            "APNS support requires additional implementation. "
-            "See handler docstring for requirements."
+        logger.warning(
+            "APNS handler is not fully implemented. "
+            "Please use FCM for push notifications or implement APNS support."
         )
+        return False
 
 
-# Handler registry
+# Handler registry - APNS commented out until fully implemented
 HANDLERS = {
     "slack": SlackHandler(),
     "sms": SMSHandler(),
     "youdu": YouduHandler(),
     "fcm": FCMHandler(),
-    "apns": APNSHandler(),
+    # "apns": APNSHandler(),  # Uncomment when APNS is fully implemented
 }
 
 

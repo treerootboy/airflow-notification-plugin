@@ -1,13 +1,12 @@
 """
 Simple tests to verify basic imports and syntax without requiring Airflow installation.
 Run with: pytest tests/test_basic.py -v
+
+Note: For these tests to work, install the package first:
+    pip install -e .
 """
 
 import os
-import sys
-
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def test_model_enums():

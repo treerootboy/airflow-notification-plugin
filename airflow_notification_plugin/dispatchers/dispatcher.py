@@ -23,7 +23,8 @@ class NotificationDispatcher:
     """Central dispatcher for notifications."""
     
     def __init__(self):
-        self.session = AirflowSession()
+        # Don't store session as instance variable - create fresh session for each dispatch
+        pass
     
     def dispatch(self, event_type: EventType, event_data: Dict[str, Any]) -> None:
         """
@@ -33,6 +34,7 @@ class NotificationDispatcher:
             event_type: Type of event that occurred
             event_data: Event metadata (dag_id, task_id, state, etc.)
         """
+        session = AirflowSession()
         try:
             dag_id = event_data.get("dag_id")
             
@@ -41,7 +43,7 @@ class NotificationDispatcher:
                 return
             
             # Query subscriptions for this DAG and event type
-            subscriptions = self.session.query(DagSubscription).filter(
+            subscriptions = session.query(DagSubscription).filter(
                 DagSubscription.dag_id == dag_id,
                 DagSubscription.event_type == event_type,
                 DagSubscription.is_active == True
@@ -56,17 +58,18 @@ class NotificationDispatcher:
             # Process each subscription
             for subscription in subscriptions:
                 try:
-                    self._send_notification(subscription, event_type, event_data)
+                    self._send_notification(session, subscription, event_type, event_data)
                 except Exception as e:
                     logger.error(f"Error processing subscription {subscription.id}: {str(e)}")
         
         except Exception as e:
             logger.error(f"Error dispatching notifications: {str(e)}")
         finally:
-            self.session.close()
+            session.close()
     
     def _send_notification(
         self,
+        session: Session,
         subscription: DagSubscription,
         event_type: EventType,
         event_data: Dict[str, Any]
@@ -80,7 +83,7 @@ class NotificationDispatcher:
                 return
             
             # Get or create default template
-            template = self._get_template(event_type, channel.channel_type)
+            template = self._get_template(session, event_type, channel.channel_type)
             
             if not template:
                 logger.warning(f"No template found for {event_type.value} / {channel.channel_type.value}")
@@ -117,6 +120,7 @@ class NotificationDispatcher:
             # For push notifications, get device tokens
             if channel.channel_type.value in ["fcm", "apns"]:
                 devices = self._get_user_devices(
+                    session,
                     subscription.user_id,
                     channel.channel_type.value
                 )
@@ -141,9 +145,9 @@ class NotificationDispatcher:
         except Exception as e:
             logger.error(f"Error sending notification: {str(e)}")
     
-    def _get_template(self, event_type: EventType, channel_type) -> NotificationTemplate:
+    def _get_template(self, session: Session, event_type: EventType, channel_type) -> NotificationTemplate:
         """Get notification template for event and channel type."""
-        template = self.session.query(NotificationTemplate).filter(
+        template = session.query(NotificationTemplate).filter(
             NotificationTemplate.event_type == event_type,
             NotificationTemplate.channel_type == channel_type,
             NotificationTemplate.is_active == True
@@ -188,7 +192,7 @@ class NotificationDispatcher:
             logger.error(f"Unexpected error rendering template: {str(e)}")
             return None
     
-    def _get_user_devices(self, user_id: str, platform_type: str) -> List[DeviceRegistration]:
+    def _get_user_devices(self, session: Session, user_id: str, platform_type: str) -> List[DeviceRegistration]:
         """Get active devices for a user and platform."""
         # Convert platform_type string to enum
         from airflow_notification_plugin.models import PlatformType
@@ -198,7 +202,7 @@ class NotificationDispatcher:
             logger.warning(f"Invalid platform type: {platform_type}")
             return []
         
-        devices = self.session.query(DeviceRegistration).filter(
+        devices = session.query(DeviceRegistration).filter(
             DeviceRegistration.user_id == user_id,
             DeviceRegistration.platform_type == platform_enum,
             DeviceRegistration.is_active == True
