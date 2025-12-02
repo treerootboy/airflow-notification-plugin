@@ -202,28 +202,26 @@ class FCMHandler(NotificationHandler):
 
 
 class APNSHandler(NotificationHandler):
-    """Handler for Apple Push Notification Service (APNS)."""
+    """Handler for Apple Push Notification Service (APNS).
+    
+    Note: This is a placeholder implementation. APNS requires more complex 
+    setup with certificates and proper authentication. To implement:
+    - Use PyAPNs2 or similar library
+    - Provide certificate/key files
+    - Implement proper authentication flow
+    """
     
     def send(self, config: Dict[str, Any], message: str, **kwargs) -> bool:
-        """Send push notification via APNS."""
-        try:
-            # APNS implementation requires more complex setup with certificates
-            # This is a placeholder for future implementation
-            logger.warning("APNS handler not fully implemented yet")
-            
-            # Would need:
-            # - Certificate file path
-            # - Key file path
-            # - Team ID
-            # - Bundle ID
-            # - Device token
-            
-            # For now, return False to indicate not implemented
-            return False
+        """Send push notification via APNS.
         
-        except Exception as e:
-            logger.error(f"Error sending APNS notification: {str(e)}")
-            return False
+        This is a placeholder implementation that always returns False.
+        Implement proper APNS integration when needed.
+        """
+        logger.warning("APNS handler not fully implemented yet")
+        raise NotImplementedError(
+            "APNS support requires additional implementation. "
+            "See handler docstring for requirements."
+        )
 
 
 # Handler registry

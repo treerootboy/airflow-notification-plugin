@@ -190,9 +190,17 @@ class NotificationDispatcher:
     
     def _get_user_devices(self, user_id: str, platform_type: str) -> List[DeviceRegistration]:
         """Get active devices for a user and platform."""
+        # Convert platform_type string to enum
+        from airflow_notification_plugin.models import PlatformType
+        try:
+            platform_enum = PlatformType[platform_type.upper()]
+        except KeyError:
+            logger.warning(f"Invalid platform type: {platform_type}")
+            return []
+        
         devices = self.session.query(DeviceRegistration).filter(
             DeviceRegistration.user_id == user_id,
-            DeviceRegistration.platform_type.has(value=platform_type),
+            DeviceRegistration.platform_type == platform_enum,
             DeviceRegistration.is_active == True
         ).all()
         

@@ -5,16 +5,16 @@ This DAG includes tasks that will succeed and fail,
 triggering notifications based on your subscriptions.
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
+from airflow.utils.dates import days_ago
 
 
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2024, 1, 1),
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
@@ -39,6 +39,7 @@ with DAG(
     default_args=default_args,
     description='Test DAG for notification plugin',
     schedule_interval=None,  # Manual trigger only
+    start_date=days_ago(1),
     catchup=False,
     tags=['notification', 'test'],
 ) as dag:

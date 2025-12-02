@@ -1,99 +1,56 @@
 """
 Simple tests to verify basic imports and syntax without requiring Airflow installation.
+Run with: pytest tests/test_basic.py -v
 """
 
-def test_imports():
-    """Test that basic modules can be imported."""
-    try:
-        # Test models can be imported (without initializing)
-        import sys
-        import os
-        
-        # Add parent directory to path
-        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        
-        # Test individual module imports without Airflow dependencies
-        print("Testing model imports...")
-        from airflow_notification_plugin.models import (
-            EventType, ChannelType, PlatformType
-        )
-        print("✓ Models enums imported successfully")
-        
-        print("\nTesting config imports...")
-        from airflow_notification_plugin.config import NotificationConfig
-        print("✓ Config imported successfully")
-        
-        print("\nAll imports successful!")
-        return True
-        
-    except Exception as e:
-        print(f"✗ Import error: {str(e)}")
-        return False
+import os
+import sys
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-def test_enums():
-    """Test that enums are defined correctly."""
-    try:
-        from airflow_notification_plugin.models import EventType, ChannelType, PlatformType
-        
-        print("\nTesting enums...")
-        
-        # Test EventType
-        assert hasattr(EventType, 'TASK_SUCCESS')
-        assert hasattr(EventType, 'TASK_FAILED')
-        assert hasattr(EventType, 'TASK_RETRY')
-        print("✓ EventType enum has all expected values")
-        
-        # Test ChannelType
-        assert hasattr(ChannelType, 'SLACK')
-        assert hasattr(ChannelType, 'SMS')
-        assert hasattr(ChannelType, 'YOUDU')
-        assert hasattr(ChannelType, 'FCM')
-        assert hasattr(ChannelType, 'APNS')
-        print("✓ ChannelType enum has all expected values")
-        
-        # Test PlatformType
-        assert hasattr(PlatformType, 'PWA')
-        assert hasattr(PlatformType, 'IOS')
-        assert hasattr(PlatformType, 'ANDROID')
-        print("✓ PlatformType enum has all expected values")
-        
-        return True
-        
-    except Exception as e:
-        print(f"✗ Enum test error: {str(e)}")
-        return False
-
-
-def test_config():
-    """Test configuration."""
-    try:
-        from airflow_notification_plugin.config import config
-        
-        print("\nTesting configuration...")
-        
-        # Test configuration values
-        assert hasattr(config, 'MAX_RETRY_ATTEMPTS')
-        assert hasattr(config, 'ENABLE_SLACK')
-        print("✓ Config has expected attributes")
-        
-        # Test channel enabled check
-        assert callable(config.is_channel_enabled)
-        print("✓ Config methods are callable")
-        
-        return True
-        
-    except Exception as e:
-        print(f"✗ Config test error: {str(e)}")
-        return False
-
-
-def test_structure():
-    """Test project structure."""
-    import os
+def test_model_enums():
+    """Test that model enums can be imported and have expected values."""
+    from airflow_notification_plugin.models import EventType, ChannelType, PlatformType
     
-    print("\nTesting project structure...")
+    # Test EventType
+    assert hasattr(EventType, 'TASK_SUCCESS')
+    assert hasattr(EventType, 'TASK_FAILED')
+    assert hasattr(EventType, 'TASK_RETRY')
+    assert hasattr(EventType, 'SLA_MISS')
+    assert hasattr(EventType, 'DAG_SUCCESS')
+    assert hasattr(EventType, 'DAG_FAILED')
     
+    # Test ChannelType
+    assert hasattr(ChannelType, 'SLACK')
+    assert hasattr(ChannelType, 'SMS')
+    assert hasattr(ChannelType, 'YOUDU')
+    assert hasattr(ChannelType, 'FCM')
+    assert hasattr(ChannelType, 'APNS')
+    
+    # Test PlatformType
+    assert hasattr(PlatformType, 'PWA')
+    assert hasattr(PlatformType, 'IOS')
+    assert hasattr(PlatformType, 'ANDROID')
+
+
+def test_config_import():
+    """Test that configuration can be imported."""
+    from airflow_notification_plugin.config import config, NotificationConfig
+    
+    # Test configuration values
+    assert hasattr(config, 'MAX_RETRY_ATTEMPTS')
+    assert hasattr(config, 'ENABLE_SLACK')
+    assert hasattr(config, 'RATE_LIMIT_ENABLED')
+    
+    # Test methods
+    assert callable(config.is_channel_enabled)
+    assert callable(config.get)
+
+
+def test_project_structure():
+    """Test that all required files exist."""
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
     required_files = [
@@ -110,45 +67,24 @@ def test_structure():
         'airflow_notification_plugin/config/__init__.py',
     ]
     
-    all_exist = True
     for file in required_files:
         filepath = os.path.join(base_dir, file)
-        if os.path.exists(filepath):
-            print(f"✓ {file}")
-        else:
-            print(f"✗ {file} - NOT FOUND")
-            all_exist = False
-    
-    return all_exist
+        assert os.path.exists(filepath), f"{file} not found"
 
 
-if __name__ == "__main__":
-    print("="*60)
-    print("Running Basic Tests")
-    print("="*60)
+def test_python_files_syntax():
+    """Test that all Python files have valid syntax."""
+    import py_compile
     
-    results = []
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    plugin_dir = os.path.join(base_dir, 'airflow_notification_plugin')
     
-    results.append(("Imports", test_imports()))
-    results.append(("Enums", test_enums()))
-    results.append(("Config", test_config()))
-    results.append(("Structure", test_structure()))
-    
-    print("\n" + "="*60)
-    print("Test Results Summary")
-    print("="*60)
-    
-    for test_name, passed in results:
-        status = "✓ PASSED" if passed else "✗ FAILED"
-        print(f"{test_name}: {status}")
-    
-    all_passed = all(result[1] for result in results)
-    
-    print("\n" + "="*60)
-    if all_passed:
-        print("✅ All tests passed!")
-    else:
-        print("❌ Some tests failed!")
-    print("="*60)
-    
-    exit(0 if all_passed else 1)
+    for root, dirs, files in os.walk(plugin_dir):
+        # Skip __pycache__ directories
+        dirs[:] = [d for d in dirs if d != '__pycache__']
+        
+        for file in files:
+            if file.endswith('.py'):
+                filepath = os.path.join(root, file)
+                # This will raise SyntaxError if there's a problem
+                py_compile.compile(filepath, doraise=True)

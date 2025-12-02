@@ -2,8 +2,6 @@
 
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import expose
-from airflow.www.auth import has_access
-from airflow.www.app import appbuilder
 from wtforms import TextAreaField
 from wtforms.widgets import TextArea
 
