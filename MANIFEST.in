@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+include REQUIREMENT.md
+include requirements.txt
+recursive-include airflow_notification_plugin/templates *
+recursive-include airflow_notification_plugin/static *
